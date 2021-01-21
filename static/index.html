@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat Room</title>
+    <style>
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            padding: 0px;
+        }
+
+        input {
+            outline: none;
+            background-color: #fcfcfc;
+            border: 1px solid #555;
+        }
+
+        input:focus {
+            background-color: white;
+        }
+
+        #contentContainer {
+            width: 100%;
+            justify-content: space-between;
+            display: flex;
+        }
+
+        #leftContainer {
+            width: 100%;
+        }
+
+        #rightContainer {
+            width: 35%;
+        }
+
+        #messageInput {
+            width: calc(100% - 0px);
+            padding: 10px;
+            font-size: 1em;
+            margin-top: 10px;
+        }
+
+        #messages {
+            padding: 10px;
+            border: 1px solid #555;
+            width: 100%;
+            height: 400px;
+            overflow-y: scroll;
+        }
+
+        #message {
+            word-wrap: break-word;
+        }
+
+        #messageUsername {
+            font-weight: bold;
+        }
+
+        #settings {
+            margin-left: 30px;
+            border: 1px solid #555;
+            padding: 10px;
+        }
+
+        #onlineUsersNumber {
+
+        }
+
+
+        ::-webkit-scrollbar {
+            width: 10px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #888;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+
+    </style>
+    <script src="../../socket.io/socket.io.js"></script>
+    <script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
+</head>
+<body>
+
+    <div id="contentContainer">
+
+        <div id="leftContainer">
+
+            <div id="messages">
+
+            </div>
+        
+            <form onsubmit="sendMessage(); return false">
+                <input type="text" id="messageInput" placeholder="Type message here..." autocomplete="off" autofocus>
+            </form>
+
+        </div>
+
+        <div id="rightContainer">
+            
+            <div id="settings">
+                <p id="onlineUsersNumber">0 Online</p>
+                <span>Chat box height</span> 
+                <input id="chatBoxHeightSlider" type="range" min="100" max="800" value="400" onchange="changeChatBoxHeight()">
+                <br>
+                <span>Username</span>
+                <input type="text" name="" id="usernameInput">
+                <button onclick="changeUsername()">Update</button>
+            </div>
+
+        </div>
+
+    </div>
+
+    <script>
+
+        function changeChatBoxHeight() {
+            $("#messages").css("height", document.getElementById("chatBoxHeightSlider").value+"px")
+        }
+
+        function changeUsername() {
+            socket.emit("change username", document.getElementById("usernameInput").value)
+            username = document.getElementById("usernameInput").value
+        }
+
+    </script>
+
+    <script>
+
+
+        let socket = io.connect("http://localhost:3000")
+
+        let username = prompt("Enter your username")
+        socket.emit("join", username)
+
+        document.getElementById("usernameInput").value = username
+        
+        function sendMessage() {
+            if(document.getElementById("messageInput").value != "") {
+                socket.emit("chat message", document.getElementById("messageInput").value)
+                document.getElementById("messageInput").value = ""
+            }
+        }
+
+        //sends join message
+        socket.on("join message", function(joinMessage) {
+            $('#messages').append($('<div id="message">').html(joinMessage))
+        })
+
+        //updates online members
+        socket.on("update online members", function(onlineUsersMessage) {
+            $("#onlineUsersNumber").text(onlineUsersMessage)
+        })
+
+        //sends username change message
+        socket.on("change username", function(changeUsernameMessage) {
+            $('#messages').append($('<div id="message">').html(changeUsernameMessage))
+        })
+
+        //sends chat message and makes sure that your scrollbar updates when you are scrolled down
+        socket.on("chat message", function(chatMessage) {
+            let scrolledDown = true
+            let messagesHistory = document.getElementById("messages")
+            if(messagesHistory.scrollTop != messagesHistory.scrollHeight - messagesHistory.clientHeight) {
+                scrolledDown = false
+            }
+            $('#messages').append($('<div id="message">').html(chatMessage))
+            if(scrolledDown) {
+                messagesHistory.scrollTop = messagesHistory.scrollHeight - messagesHistory.clientHeight
+            }
+        }) 
+
+        //send leave message
+        socket.on("leave message", function(leaveMessage) {
+            $('#messages').append($('<div id="message">').html(leaveMessage))
+        })
+
+    </script>
+</body>
+</html>
