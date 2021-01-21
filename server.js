@@ -8,9 +8,7 @@ const io = require("socket.io")(http)
 
 let colors = ["red", "blue", "limegreen", "gold", "purple", "hotpink", "orange", "cyan"]
 
-app.get("/", function(req, res) {
-    app.use(express.static(__dirname + '/static'));
-})
+app.use(express.static(__dirname + '/static'));
 
 let onlineUsers = []
 
@@ -21,7 +19,10 @@ io.sockets.on("connection", function(socket) {
         socket.color = colors[Math.floor(Math.random()*colors.length)]
         onlineUsers.push(socket.username)
         io.emit("join message", `<p style="font-style: italic;">${socket.username} joined. Hello!</p>`)
-        io.emit("update online members", `${onlineUsers.length} Online`)
+        io.emit("update online members", {
+            userNumberMessage: `${onlineUsers.length} Online`,
+            usernames: onlineUsers
+        })
     })
 
     socket.on("chat message", function(msg) {
@@ -39,7 +40,10 @@ io.sockets.on("connection", function(socket) {
     socket.on("disconnect", function(username) {
         onlineUsers.splice(onlineUsers.indexOf(socket.username), 1)
         io.emit("leave message", `<p style="font-style: italic;">${socket.username} left. Goodbye :(</p>`)
-        io.emit("update online members", `${onlineUsers.length} Online`)
+        io.emit("update online members", {
+            userNumberMessage: `${onlineUsers.length} Online`,
+            usernames: onlineUsers
+        })
     }) 
 }) 
 

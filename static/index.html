@@ -27,7 +27,9 @@
         <div id="rightContainer">
             
             <div id="settings">
-                <p id="onlineUsersNumber">0 Online</p>
+                <div id="statistics">
+                    <span id="onlineUsersNumber">0 Online</span> <span id="onlineUsersUsernames"></span>
+                </div>
                 <span>Chat box height</span> 
                 <input id="chatBoxHeightSlider" type="range" min="100" max="800" value="400" onchange="changeChatBoxHeight()">
                 <br>
@@ -118,8 +120,14 @@
         })
 
         //updates online members
-        socket.on("update online members", function(onlineUsersMessage) {
-            $("#onlineUsersNumber").text(onlineUsersMessage)
+        socket.on("update online members", function(onlineUsers) {
+            $("#onlineUsersNumber").text(onlineUsers.userNumberMessage)
+            let onlineUsersUsernames = " • "
+            for(let i = 0; i < onlineUsers.usernames.length-1; i++) {
+                onlineUsersUsernames += onlineUsers.usernames[i]+" • "
+            }
+            onlineUsersUsernames += onlineUsers.usernames[onlineUsers.usernames.length-1]
+            $("#onlineUsersUsernames").text(onlineUsersUsernames)
         })
 
     </script>
