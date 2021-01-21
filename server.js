@@ -1,5 +1,7 @@
 const { futimesSync } = require("fs");
 
+const express = require("express")
+const path = require("path")
 const app = require("express")()
 const http = require("http").Server(app)
 const io = require("socket.io")(http)
@@ -7,7 +9,7 @@ const io = require("socket.io")(http)
 let colors = ["red", "blue", "limegreen", "gold", "purple", "hotpink", "orange", "cyan"]
 
 app.get("/", function(req, res) {
-    res.sendFile(__dirname+"/static/index.html");
+    app.use(express.static(__dirname + '/static'));
 })
 
 let onlineUsers = []
@@ -41,6 +43,6 @@ io.sockets.on("connection", function(socket) {
     }) 
 }) 
 
-http.listen(process.env.PORT, function() {
+http.listen(3000, function() {
     console.log("server running")
 })

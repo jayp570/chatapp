@@ -1,88 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <link rel="stylesheet" href="/style.css" type="text/css">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Chat Room</title>
-    <style>
-        
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            padding: 0px;
-        }
-
-        input {
-            outline: none;
-            background-color: #fcfcfc;
-            border: 1px solid #555;
-        }
-
-        input:focus {
-            background-color: white;
-        }
-
-        #contentContainer {
-            width: 100%;
-            justify-content: space-between;
-            display: flex;
-        }
-
-        #leftContainer {
-            width: 100%;
-        }
-
-        #rightContainer {
-            width: 35%;
-        }
-
-        #messageInput {
-            width: calc(100% - 0px);
-            padding: 10px;
-            font-size: 1em;
-            margin-top: 10px;
-        }
-
-        #messages {
-            padding: 10px;
-            border: 1px solid #555;
-            width: 100%;
-            height: 400px;
-            overflow-y: scroll;
-        }
-
-        #message {
-            word-wrap: break-word;
-        }
-
-        #messageUsername {
-            font-weight: bold;
-        }
-
-        #settings {
-            margin-left: 30px;
-            border: 1px solid #555;
-            padding: 10px;
-        }
-
-        #onlineUsersNumber {
-
-        }
-
-
-        ::-webkit-scrollbar {
-            width: 10px;
-        }
-        ::-webkit-scrollbar-track {
-            background: #f1f1f1;
-        }
-        ::-webkit-scrollbar-thumb {
-            background: #888;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background: #555;
-        }
-
-    </style>
     <script src="../../socket.io/socket.io.js"></script>
     <script src="https://code.jquery.com/jquery-1.10.1.min.js"></script>
 </head>
@@ -129,12 +51,27 @@
             username = document.getElementById("usernameInput").value
         }
 
+
+
+        function checkScrolledDown() {
+            let scrolledDown = true
+            let messagesHistory = document.getElementById("messages")
+            if(messagesHistory.scrollTop != messagesHistory.scrollHeight - messagesHistory.clientHeight) {
+                scrolledDown = false
+            }
+            return scrolledDown
+        }
+
+        function scrollDown() {
+            let messagesHistory = document.getElementById("messages")
+            messagesHistory.scrollTop = messagesHistory.scrollHeight - messagesHistory.clientHeight
+        }
+
     </script>
 
     <script>
 
-
-        let socket = io.connect("https://chat-app123456789.herokuapp.com/")
+        let socket = io.connect("http://localhost:3000")
 
         let username = prompt("Enter your username")
         socket.emit("join", username)
@@ -150,35 +87,39 @@
 
         //sends join message
         socket.on("join message", function(joinMessage) {
+            let scrolledDown = checkScrolledDown()
             $('#messages').append($('<div id="message">').html(joinMessage))
-        })
-
-        //updates online members
-        socket.on("update online members", function(onlineUsersMessage) {
-            $("#onlineUsersNumber").text(onlineUsersMessage)
+            if(scrolledDown) {
+                scrollDown()
+            }
         })
 
         //sends username change message
         socket.on("change username", function(changeUsernameMessage) {
+            let scrolledDown = checkScrolledDown()
             $('#messages').append($('<div id="message">').html(changeUsernameMessage))
+            if(scrolledDown) {
+                scrollDown()
+            }
         })
 
         //sends chat message and makes sure that your scrollbar updates when you are scrolled down
         socket.on("chat message", function(chatMessage) {
-            let scrolledDown = true
-            let messagesHistory = document.getElementById("messages")
-            if(messagesHistory.scrollTop != messagesHistory.scrollHeight - messagesHistory.clientHeight) {
-                scrolledDown = false
-            }
+            let scrolledDown = checkScrolledDown()
             $('#messages').append($('<div id="message">').html(chatMessage))
             if(scrolledDown) {
-                messagesHistory.scrollTop = messagesHistory.scrollHeight - messagesHistory.clientHeight
+                scrollDown()
             }
         }) 
 
         //send leave message
         socket.on("leave message", function(leaveMessage) {
             $('#messages').append($('<div id="message">').html(leaveMessage))
+        })
+
+        //updates online members
+        socket.on("update online members", function(onlineUsersMessage) {
+            $("#onlineUsersNumber").text(onlineUsersMessage)
         })
 
     </script>
